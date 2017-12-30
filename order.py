@@ -21,8 +21,8 @@ class Order(object):
             return time() - self.expiration
 
     @staticmethod
-    def next(self):
-        yield Order(ORDER_TIMEOUT, [FoodType.slicedOnion.name]*3)
+    def next():
+        return Order(ORDER_TIMEOUT, [FoodType.slicedOnion.name]*3)
 
     def to_json(self):
         pass

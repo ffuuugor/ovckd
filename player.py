@@ -1,5 +1,6 @@
 from commons import *
 import json
+import random
 
 class Player:
 
@@ -7,7 +8,7 @@ class Player:
         self.game = game
         self.pos_max = game.grid.top_right_pos()
 
-        self.pos = Position(0, 0)  # TODO random pick
+        self.pos = random.choice(game.empty_tiles())  # TODO random pick
         self.direction = Direction.up
         self.hands = None
 
@@ -22,6 +23,9 @@ class Player:
             self.pos = new_pos
             if self.hands is not None:
                 self.hands.pos = new_pos
+
+    def move(self, command):
+        getattr(self, command)()
 
     def up(self):
         self.direction = Direction.up
@@ -41,20 +45,28 @@ class Player:
 
     def active_tile(self):
         if self.direction == Direction.up:
-            return self._new_tile(self.pos.x, self.pos.y + 1)
-        elif self.direction == Direction.down:
             return self._new_tile(self.pos.x, self.pos.y - 1)
+        elif self.direction == Direction.down:
+            return self._new_tile(self.pos.x, self.pos.y + 1)
         if self.direction == Direction.right:
             return self._new_tile(self.pos.x + 1, self.pos.y)
         elif self.direction == Direction.left:
             return self._new_tile(self.pos.x - 1, self.pos.y)
 
+    def drop(self, add_entity=True):
+        if self.hands:
+            if add_entity:
+                self.game.entities.append(self.hands)
+
+            self.hands.pos = Position(self.active_tile().x, self.active_tile().y)
+            self.hands = None
+
     def to_json(self):
-        return json.dumps({
+        return {
             "type": "player",
             "position": self.pos.to_json(),
             "entity": {
                 "direction": self.direction.name,
                 "hands": self.hands.to_json() if self.hands else None
             }
-        })
+        }

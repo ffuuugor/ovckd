@@ -1,5 +1,5 @@
 from commons import *
-
+import json
 
 class Grid:
 
@@ -13,6 +13,8 @@ class Grid:
         [1, 2, 2, 2, 2, 2, 1],
     ]
 
+    #TODO read from file
+
     def __init__(self, grid=None):
         if grid:
             self.grid = grid
@@ -22,8 +24,8 @@ class Grid:
     def top_right_pos(self):
         return Position(len(self.grid[0])-1, len(self.grid))
 
-    def tile(self, x, y):
-        return TileType(self.grid[y, x])
+    def tile(self, pos):
+        return TileType(self.grid[pos.y][pos.x])
 
     def empty_tiles(self):
         ret = []
@@ -33,3 +35,6 @@ class Grid:
                     ret.append(Position(x, y))
 
         return ret
+
+    def to_json(self):
+        return self.grid

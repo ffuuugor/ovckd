@@ -5,6 +5,9 @@ PREPARE_TIME = 10
 ORDER_TIMEOUT = 60
 ORDER_CREATION_INTERVAL = 30
 NUM_PLAYERS = 2
+COMPLETE_ORDER_BONUS = 20
+WRONG_ORDER_PENALTY = 10
+
 
 class TileType(Enum):
     empty = 0
@@ -38,10 +41,10 @@ class Position(object):
         return hash(self.x)*17 + hash(self.y)
 
     def to_json(self):
-        return json.dumps({
+        return {
             "x": self.x,
             "y": self.y
-        })
+        }
 
 def mean(arr):
     return float(sum(arr))/len(arr)

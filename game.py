@@ -3,6 +3,7 @@ from commons import *
 from player import Player
 from time import time
 from order import Order
+from food import *
 import json
 
 class Game:
@@ -22,8 +23,15 @@ class Game:
         self.players[plid] = player
         self.entities.append(player)
 
+    def entity_at(self, pos):
+        for ent in self.entities:
+            if ent.pos == pos:
+                return ent
+
+        return None
+
     def empty_tiles(self):
-        return self.grid.empty_tiles() - [x.pos for x in self.entities]
+        return list(set(self.grid.empty_tiles()) - set([x.pos for x in self.entities]))
 
     @property
     def ready(self):
@@ -31,7 +39,7 @@ class Game:
 
     @property
     def recipes_count_to_time(self):
-        return (time() - self.start_time)/ORDER_CREATION_INTERVAL
+        return int((time() - self.start_time)/ORDER_CREATION_INTERVAL)
 
     @property
     def active_recipes(self):
@@ -44,6 +52,9 @@ class Game:
 
         return self._active_recipes
 
+    def complete_order(self, order):
+        self._active_recipes = self._active_recipes - order
+
     def start(self):
         self.start_time = time()
 
@@ -51,8 +62,36 @@ class Game:
         return json.dumps({
             "score": self.score,
             "orderList": [x.to_json() for x in self.active_recipes],
-            "grid": self.grid.to_json(),
+            "grid": self.grid.grid,
             "entities": [x.to_json() for x in self.entities]
         })
+
+    def move(self, player_id, cmd):
+        self.players[player_id].move(cmd)
+
+    def start_cut(self, player_id):
+        player = self.players[player_id]
+        ent = self.entity_at(player.active_tile())
+        if ent is not None and isinstance(ent, Food) and ent.type in RAW_FOOD and self.grid.tile(player.active_tile()) == TileType.knife.value:
+            ent.cook()
+
+    def take_or_drop(self, player_id):
+        player = self.players[player_id]
+        external_ent = self.entity_at(player.active_tile())
+
+        if player.hands:
+            if player.pos != player.active_tile():
+                player.hands.drop_to(player, external_ent)
+        elif external_ent:
+           player.hands = external_ent
+           self.entities.remove(external_ent)
+        else:
+            tile = self.grid.tile(player.active_tile())
+            if tile == TileType.mushroom_box:
+                self.entities.append(Food(FoodType.mushroom, player.active_tile()))
+            elif tile == TileType.onion_box:
+                self.entities.append(Food(FoodType.onion, player.active_tile()))
+            elif tile == TileType.tomato_box:
+                self.entities.append(Food(FoodType.tomato, player.active_tile()))
 
 
